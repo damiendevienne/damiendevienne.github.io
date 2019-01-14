@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="AGAT propose des solutions innovantes en géomatique et cartographie numérique pour...">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+    <link rel="stylesheet" href="leaflet-fa-markers/L.Icon.FontAwesome.css">    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+    <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
+    <script src="leaflet-fa-markers/L.Icon.FontAwesome.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+    <title>AGAT | Accompagnement Géomatique des Acteurs du Territoire</title>
+    <style>
+      body {
+        padding: 30px;
+        margin: 0;
+        background-color: #009ba5;
+        }
+      html, body, #map {
+        height: 100%;
+        width: 100%;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+      }
+      .logoClass {
+      }
+     .deviseClass {
+      max-width: 220px;
+      background-color: transparent;
+      padding-left:0px;
+      opacity:1;
+      font-size:8pt;
+      font-weight:700;
+      color: #009ba5;
+      font-family: 'Montserrat', sans-serif;
+      }
+      #textetop {
+        color:red;
+      }
+      #phraseChoc {
+        color:'red';
+      }
+      #logo {
+        position: absolute;
+        top:10px;
+        left:10px;
+        padding:10px;
+        background:white;
+        z-index:1000;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+      }
+      #contain {
+        position:absolute;
+        left:10px;
+        right:10px;
+        top:10px;
+        bottom:10px;
+        background-color: transparent;
+        z-index:1000;
+      }
+      #title {
+        text-align:center;
+        background-color: white;
+        opacity: 0.8;
+        padding:10px;
+        font-family: 'Montserrat', sans-serif;
+        color:  #009ba5;
+        font-weight: 500;
+        font-size: 34pt;
+      }
+      #subtitle {
+       font-size: 20pt; 
+       font-weight: 300;
+      }
+      .leaflet-tooltip {
+        text-align:center !important;
+        font-family: 'Montserrat', sans-serif !important;       
+      }
+      .btn-secondary {
+        background-color: #1a9ba4 !important;
+      }
+      .modal {
+        font-family: 'Montserrat', sans-serif !important;
+      }
+      .modal-body {
+        font-size:small !important;
+      }
+      .modal-header {
+        background-color: #074b51;
+        color:white;
+      }
+      a {
+        color:#074b50
+      }
+      a:hover {
+        color:#1a9ba4
+      }
+      .leaflet-bar button {
+        color:#074b51;
+      }
+      /* ANIMATION */
+      .leaflet-marker-icon,
+.leaflet-tooltip {
+  -webkit-animation: fadein 3s; /* Safari, Chrome and Opera > 12.1 */
+  -moz-animation: fadein 3s; /* Firefox < 16 */
+  -ms-animation: fadein 3s; /* Internet Explorer */
+  -o-animation: fadein 3s; /* Opera < 12.1 */
+  animation: fadein 3s;
+}
+
+@keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Firefox < 16 */
+@-moz-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Internet Explorer */
+@-ms-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Opera < 12.1 */
+@-o-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+
+    </style>
+  </head>
+
+  <body>
+    <!--MODAL FOR MARKERS-->
+    <div class="modal" id="ActionsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class='row'>
+              <div class='col-sm-2' id="HeadOfModIcon"></div>
+              <div class='col-sm-10' id="HeadOfModText"></div>
+            </div>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true" style="color:white;">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="MarkerText">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--MODAL FOR info-->
+    <div class="modal" id="InfoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle">
+              <img src="img/logo-small.png" />&nbsp;&nbsp;&nbsp;À PROPOS</i>
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true" style="color:white;">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class='row'>
+              <div class='col-sm-8'  id="InfoText"></div>
+              <div class='col-sm-4' style="text-align: center;">
+                <p><img src='img/cha.jpeg' width='100%'></p>
+                <p><b>Charlotte Pierrat</b></p>
+                <p><i>Directrice</i></p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--MODAL FOR Contact-->
+    <div class="modal" id="ContactModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle">
+              <img src="img/logo-small.png" />&nbsp;&nbsp;&nbsp;NOUS CONTACTER</i>
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true" style="color:white;">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p><i class="fas fa-at fa-fw"></i> contact@agat-solutions.com</p>
+            <p><i class="fas fa-phone fa-fw"></i> 07 81 74 80 73</p>
+            <p><i class="fas fa-envelope fa-fw"></i> 47 chemin du Vieux Bourg - 69280 Sainte Consorce</p>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+     <!--MODAL Partenaires-->
+    <div class="modal" id="PartnerModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle">
+              <img src="img/logo-small.png" />&nbsp;&nbsp;&nbsp;LES PARTENAIRES</i>
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true" style="color:white;">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class='row'>
+              <div class='col-sm-4'><a href="http://inkidata.fr" target="_blank"><img src="img/inkidata.png" width="100%"></a></div>              
+              <div class='col-sm-8'>Etudes marketing, Géomarketing ; Information économique</div>              
+            </div>
+            <hr>
+            <div class='row'>
+              <div class='col-sm-4'><a href="http://altermap.fr" target="_blank"><img src="img/altermap.png" width="100%"></a></div>              
+              <div class='col-sm-8'>Prestations, Conseil, Formation en géomatique ; Cartographie des chantiers industriels</div>              
+            </div>
+            <hr>
+            <div class='row'>
+              <div class='col-sm-4'><a href="http://carto-reseaux.fr" target="_blank"><img src="img/cartoreseau.png" width="100%"></a></div>              
+              <div class='col-sm-8'>Réseau national de géomaticiens indépendants intervenant dans la numérisation des réseaux et la mise en conformité des exploitants sur le Guichet Unique</div>              
+            </div>
+            <hr>
+            <div class='row'>
+              <div class='col-sm-4'><a href="http://agaricig.com" target="_blank"><img src="img/agaricig.png" width="100%"></a></div>              
+              <div class='col-sm-8'>Notre partenaire spécialiste de l'infogérance</div>              
+            </div>
+          </div>
+          <hr>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+
+    <div id="map">    </div>
+        <!-- Button trigger modal -->
+        <!-- Button trigger modal -->
+<!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ActionsModal">
+  Launch demo modal
+</button>
+ -->   <!-- Modal -->
+
+
+
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+    <!--TEXTE QUI S'AFFICHERA-->
+    <script src="txt/textes.js"></script>
+
+
+    <script>
+      var mymap = L.map('map', {zoomControl:false, maxBoundsViscosity:0} );
+      //mymap.setView([51.505, -0.09], 13);
+      L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_nolabels/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+        subdomains: 'abcd',
+        maxZoom: 14, 
+        minZoom:10,
+      }).addTo(mymap);
+      //mymap.setMaxBounds(mymap.getBounds());
+
+
+      //LOGO
+       //logo position: bottomright, topright, topleft, bottomleft
+      var logo = L.control({position: 'topleft'});
+      logo.onAdd = function(map){
+        var div = L.DomUtil.create('div', 'logoClass');
+        div.innerHTML= "<img src='img/logo.png' width='220px'/>";
+//        div.innerHTML+= "<div>NOTRE MISSION ?<br>Faciliter l'accès à l'information géographique<br>pour les acteurs des territoires</div>";
+        return div;
+      }
+      logo.addTo(mymap);
+
+      var phrase = L.control({position: 'bottomleft'});
+      phrase.onAdd = function(map){
+        var div = L.DomUtil.create('div', 'deviseClass');
+        div.innerHTML= "NOTRE MISSION : Faciliter l'accès à l'information géographique pour les acteurs des territoires";
+//        div.innerHTML+= "NOTRE MISSION : Faciliter l'accès à l'information géographique pour les acteurs des territoires";
+        return div;
+      }
+      phrase.addTo(mymap);
+
+
+      // var phrase = L.control({position: 'bottomleft'});
+      //  phrase.onAdd = function(map){
+      //  var div = L.DomUtil.create('div', 'deviseClass');
+      //  div.innerHTML = "";
+      //  return div;
+      // }
+      // phrase.addTo(mymap);
+
+      L.control.zoom({position:'topright', zoomInTitle: 'Zoomer', zoomOutTitle: 'Dézoomer'}).addTo(mymap);
+      
+      L.easyButton('fa-info', function(btn, map){
+        $("#InfoModal").modal("show");  
+      },
+      "À propos d'AGAT",
+      {position:'topleft', title:'coucou les amis'}).addTo(mymap);
+
+      L.easyButton('fa-at ',function(btn, map){
+        $("#ContactModal").modal("show");  
+      },
+        'Contacter AGAT',
+        {position:'topleft'}
+        ).addTo(mymap);
+
+      L.easyButton('far fa-handshake',function(btn, map){
+        $("#PartnerModal").modal("show");},
+        'Partenaires',
+        {position:'topleft'}
+        ).addTo(mymap);
+
+      L.easyButton('fab fa-twitter ',function(btn, map){
+        window.location.href = "http://www.twitter.com/agatsolutions" },
+        'AGAT sur Twitter',
+        {position:'topleft'}
+        ).addTo(mymap);
+        L.easyButton('fab fa-linkedin-in ',function(btn, map){
+          window.location.href = "https://fr.linkedin.com/in/charlottepierrat"  
+        },
+        'Charlotte Pierrat (AGAT) sur Linkedin',
+        {position:'topleft'}
+        ).addTo(mymap);
+
+
+
+      var Iconaudit = L.icon({
+          iconUrl: 'img/mark-audit.png',
+          iconSize:     [36.8, 60], // size of the icon
+          iconAnchor:   [18.4, 60], // point of the icon which will correspond to marker's location
+          popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+      });
+      var Icondocurba = L.icon({
+          iconUrl: 'img/mark-docurba.png',
+          iconSize:     [36.8, 60], // size of the icon
+          iconAnchor:   [18.4, 60], // point of the icon which will correspond to marker's location
+          popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+      });
+      var Iconformation = L.icon({
+          iconUrl: 'img/mark-formation.png',
+          iconSize:     [36.8, 60], // size of the icon
+          iconAnchor:   [18.4, 60], // point of the icon which will correspond to marker's location
+          popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+      });
+      var Iconintegration = L.icon({
+          iconUrl: 'img/mark-integration.png',
+          iconSize:     [36.8, 60], // size of the icon
+          iconAnchor:   [18.4, 60], // point of the icon which will correspond to marker's location
+          popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+      });
+      var Iconportails = L.icon({
+          iconUrl: 'img/mark-portails.png',
+          iconSize:     [36.8, 60], // size of the icon
+          iconAnchor:   [18.4, 60], // point of the icon which will correspond to marker's location
+          popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+      });
+      var Iconreglem = L.icon({
+          iconUrl: 'img/mark-reglem.png',
+          iconSize:     [36.8, 60], // size of the icon
+          iconAnchor:   [18.4, 60], // point of the icon which will correspond to marker's location
+          popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+      });
+
+      audit = L.marker([51.5, -0.09], {icon: Iconaudit}).addTo(mymap);
+      urba = L.marker([51.489293207077296, -0.06145477294921876], {icon: Icondocurba}).addTo(mymap);
+      integr = L.marker([51.51429786349477, -0.05527496337890626], {icon: Iconformation}).addTo(mymap);
+      forma = L.marker([51.52540664057756, -0.09527206420898439], {icon: Iconintegration}).addTo(mymap);
+      portail = L.marker([51.50778087767913, -0.1316642761230469], {icon: Iconportails}).addTo(mymap);
+      reglem = L.marker([51.47871018363062, -0.11209487915039064], {icon: Iconreglem}).addTo(mymap);
+
+      audit.bindTooltip("CONSEIL & AUDIT", {direction:'bottom', permanent:true}).openTooltip();
+      audit.name = 'audit';
+      urba.bindTooltip("DÉMATÉRIALISATION DE<br>DOCUMENTS D'URBANISME", {direction:'bottom', permanent:true}).openTooltip();
+      urba.name = 'urba'
+      forma.bindTooltip("FORMATIONS QGIS", {direction:'bottom', permanent:true}).openTooltip();
+      forma.name = 'forma';
+      integr.bindTooltip("INTÉGRATION DE DONNÉES<br>DANS VOTRE SIG", {direction:'bottom', permanent:true}).openTooltip();
+      integr.name='integr';
+      portail.bindTooltip("DÉVELOPPEMENT<br>WEB-CARTO", {direction:'bottom', permanent:true}).openTooltip();
+      portail.name='portail';
+      reglem.bindTooltip("CARTOGRAHIE RÉGLEMENTAIRE<br>DES RÉSEAUX", {direction:'bottom', permanent:true}).openTooltip();
+      reglem.name='reglem';
+
+      var group = new L.featureGroup([audit,urba,forma,integr,portail,reglem]);
+      mymap.fitBounds(group.getBounds());
+
+      group.on("click", function (event) {
+        var clic = event.layer.name;
+        linkimg = event.layer._icon.src;
+        texttooltip = event.layer._tooltip._content;
+        console.log(event.layer)
+        var text;
+        clic === 'audit' ? text = auditTxt : 
+        clic === 'urba' ? text = urbaTxt : 
+        clic === 'forma' ? text = formaTxt : 
+        clic === 'integr' ? text = integrTxt : 
+        clic === 'portail' ? text = portailTxt : 
+        clic === 'reglem' ? text = reglemTxt : text="erreur" ;
+
+        document.getElementById("HeadOfModIcon").innerHTML = "<img src='"+linkimg+"' height='50px;'/>";
+        document.getElementById("HeadOfModText").innerHTML =texttooltip.replace('<br>',' ');
+        document.getElementById("MarkerText").innerHTML = text;
+        $("#ActionsModal").modal("show")
+      });
+
+    mymap.on('click', function(e) {
+    console.log("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
+    console.log(apropos)
+    console.log(mymap.getBounds())
+
+    });
+
+
+    $( document ).ready(function() {
+      document.getElementById("InfoText").innerHTML = apropos;
+      console.log("prêt")
+    });
+
+    </script>
+  </body>
+</html> 
