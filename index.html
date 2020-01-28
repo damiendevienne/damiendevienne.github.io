@@ -408,6 +408,12 @@
 			iconSize:     [18, 25], // size of the icon
 			iconAnchor:   [9, 30], // point of the icon which will correspond to marker's location
 		});
+		var fan = L.icon({
+			iconUrl: 'img/fan.png',
+			iconSize:     [18, 30], // size of the icon
+			iconAnchor:   [9, 33], // point of the icon which will correspond to marker's location
+		});
+
 	</script>
 	<script>
 		$("#route").click(function(){
@@ -515,6 +521,39 @@
 		    }
 			return res1.concat(res2.reverse());
 	    }  
+
+
+//NOUVEAUTÉ (vite fait, pour Jacques Roux)
+	    function fannions() {
+	    	interestingtids = "9592 9596 9599 9577 9606 9780 9688 9893 9625 9471 37031 9739 9761 119203 9615 9685 9612 35510 27696 32523 30863 6643 551287 653016 10114 98315 9992 36668 34735 28641 1912919 6893 13239 9397 30420 9216 9153 8931 34923 9242 70608 8464 8572 163485 76306 171638 2696291 6125 6499 1206794 5791 562 32069 28889 1051663"
+	    	var url = "http://"+ServerAddress+"/solr/taxo/select?q=*:*&fq=taxid:(" + interestingtids + ")&wt=json&rows=10000";
+			var fannionmarkers = new L.FeatureGroup();
+			$.ajax({
+				url : url,
+				success : function(data) {
+					var ok = data.response.docs;
+					console.log(ok)
+					$.each(ok, function( index, value ) {
+						console.log(ok[index].sci_name)
+						var latlong = new L.LatLng(ok[index].lat[0], ok[index].lon[0]);
+						var marker = L.marker(latlong,{icon: fan});
+						marker.bindPopup(ok[index].sci_name[0])
+						fannionmarkers.addLayer(marker);
+						}
+					);
+				},
+			dataType : 'jsonp',
+			jsonp : 'json.wrf'
+			});
+			fannionmarkers.addTo(map)
+		}
+
+		fannions()
+//FIN NOUVEAUTÉ
+
+
+
+
 	    var zoomTo = function(taxid) {
 //			$("#route-details").hide();
 	  		var url = "http://"+ServerAddress+"/solr/taxo/select?q=taxid:"+taxid+"&wt=json";
